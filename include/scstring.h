@@ -19,23 +19,30 @@ typedef struct {
         size_t cap;
         size_t len;
         char *data;
-} Scstring;
+} SCS;
 
-void Scstring_grow_cap(Scstring *s);
-void Scstring_reserve(Scstring *s, size_t new_cap);
-void Scstring_set_cap(Scstring *s, size_t new_cap);
-void Scstring_free(Scstring *s);
-void Scstring_add_null(Scstring *s);
-void Scstring_raw_push_char(Scstring *s, char c);
-void Scstring_push_char(Scstring *s, char c);
-void Scstring_concat(Scstring *s1, Scstring *s2);
-void Scstring_concat_with_cstr(Scstring *s, const char *cstr);
-void Scstring_insert_char(Scstring *s, size_t idx, const char c);
-void Scstring_clear(Scstring *s);
+void SCS_grow_cap(SCS *s);
+void SCS_reserve(SCS *s, size_t new_cap);
+void SCS_set_cap(SCS *s, size_t new_cap);
+void SCS_free(SCS *s);
+void SCS_add_null(SCS *s);
+void SCS_raw_push_char(SCS *s, char c);
+void SCS_push_char(SCS *s, char c);
+void SCS_concat(SCS *s1, SCS *s2);
+void SCS_concat_with_str(SCS *s, const char *cstr);
+void SCS_insert_char(SCS *s, size_t idx, const char c);
+void SCS_insert_str(SCS *s, size_t idx, const char *c);
+void SCS_remove_char(SCS *s, size_t idx);
+void SCS_clear(SCS *s);
 
-Scstring *Scstring_new(void);
-Scstring *Scstring_from(const char *cstr);
-Scstring *Scstring_clone(Scstring *s);
+int SCS_find(SCS *s, const char *target);
+int SCS_replace(SCS *s, const char *target, const char *rep);
+int SCS_replace_all(SCS *s, const char *target, const char *rep, size_t max);
+
+
+SCS *SCS_new(void);
+SCS *SCS_from(const char *cstr);
+SCS *SCS_clone(SCS *s);
 
 
 

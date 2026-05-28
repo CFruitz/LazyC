@@ -1,4 +1,4 @@
-#include "scs.h"
+#include "scstring.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,12 +10,12 @@ typedef struct {
         size_t cap;
         size_t len;
         char *data;
-} Scstring;;
+} SCS;
 */
 
-//IMPORTANTT
+//IMPORTANT
 
-void Scstring_grow_cap(Scstring *s) {
+void SCS_grow_cap(SCS *s) {
         s->cap *= 2;
         char *temp = realloc(s->data, s->cap);
         if (temp == NULL) {
@@ -25,7 +25,7 @@ void Scstring_grow_cap(Scstring *s) {
         s->data = temp;
 }
 
-void Scstring_reserve(Scstring *s, size_t new_cap) {
+void SCS_reserve(SCS *s, size_t new_cap) {
         if (new_cap <= s->cap) return;
         char *temp = realloc(s->data, new_cap);
         if (temp == NULL) {
@@ -37,7 +37,7 @@ void Scstring_reserve(Scstring *s, size_t new_cap) {
 }
 
 
-void Scstring_set_cap(Scstring *s, size_t new_cap) {
+void SCS_set_cap(SCS *s, size_t new_cap) {
         char *temp = realloc(s->data, new_cap);
         if (temp == NULL) {
                 fprintf(stderr, "REALLOC ERROR!\n");
@@ -47,83 +47,140 @@ void Scstring_set_cap(Scstring *s, size_t new_cap) {
         s->cap  = new_cap;
 }
 
-void Scstring_free(Scstring *s) {
+void SCS_free(SCS *s) {
         free(s->data);
         free(s);
 }
 
-void Scstring_add_null(Scstring *s) {
+void SCS_add_null(SCS *s) {
         s->data[s->len] = '\0';
 }
 
-void Scstring_raw_push_char(Scstring *s, char c) {
+void SCS_raw_push_char(SCS *s, char c) {
         s->data[s->len] = c;
         s->len++;
 }
 
-void Scstring_push_char(Scstring *s, char c) {
+void SCS_push_char(SCS *s, char c) {
         if (s->len + 1 >= s->cap) {
-                Scstring_grow_cap(s);
+                SCS_grow_cap(s);
         }
         s->data[s->len] = c;
         s->len++;
-        Scstring_add_null(s);
+        SCS_add_null(s);
 }
 
-void Scstring_concat(Scstring *s1, Scstring *s2) {
-        Scstring_reserve(s1, s1->len + s2->len + 1);
+void SCS_concat(SCS *s1, SCS *s2) {
+        SCS_reserve(s1, s1->len + s2->len + 1);
         for (size_t i = 0; i < s2->len; i++) {
-                Scstring_raw_push_char(s1, s2->data[i]);
+                SCS_raw_push_char(s1, s2->data[i]);
         }
-        Scstring_add_null(s1);
+        SCS_add_null(s1);
 }
 
-void Scstring_concat_with_cstr(Scstring *s, const char *cstr) {
-        Scstring_reserve(s, s->len + strlen(cstr) + 1);
+void SCS_concat_with_str(SCS *s, const char *cstr) {
+        SCS_reserve(s, s->len + strlen(cstr) + 1);
         size_t i = 0;
         while (*(cstr + i) != '\0') {
-                Scstring_raw_push_char(s, *(cstr + i));
+                SCS_raw_push_char(s, *(cstr + i));
                 i++;
         }
-        Scstring_add_null(s);
+        SCS_add_null(s);
 }
 
-void Scstring_insert_char(Scstring *s, size_t idx, const char c) {
-        Scstring_reserve(s, s->len + 1);
+void SCS_insert_char(SCS *s, size_t idx, const char c) {
+        SCS_reserve(s, s->len + 1);
         if (idx > s->len) idx = s->len;
         memmove(s->data + idx + 1, s->data + idx, s->len - idx + 1);
         s->data[idx] = c;
         s->len++;
-        Scstring_add_null(s);
+        SCS_add_null(s);
 }
 
-void Scstring_clear(Scstring *s) {
-        s->len = 0;
-        Scstring_add_null(s);
+void SCS_insert_str(SCS *s, size_t idx, const char *src) {
+    SCS_reserve(s, s->len + strlen(src));
+    memmove(s->data + idx + strlen(src), s->data + idx, strlen(s->data + idx) + 1);
+    memcpy(s->data + idx, src, strlen(src));
+    s->len += strlen(src);
+    SCS_add_null(s);
 }
+
+void SCS_remove_char(SCS *s, size_t idx) {
+    if (idx > s->len) idx = s->len;
+    memmove(s->data + idx,s->data + idx + 1, s->len - idx);
+    s->len--;
+    SCS_add_null(s);
+}
+
+
+void SCS_clear(SCS *s) {
+        s->len = 0;
+        SCS_add_null(s);
+}
+
+//Utils
+
+int SCS_find(SCS *s, const char *target) {
+    size_t target_len = strlen(target);
+    if (target_len > s->len) return -1;
+    for (size_t i = 0; i <= s->len - target_len; i++) {
+        if (memcmp(s->data + i, target, target_len) == 0) return (int)i;
+    }
+    return -1;
+}
+
+int SCS_replace(SCS *s, const char *target, const char *rep) {
+    int pos = SCS_find(s, target);
+    if (pos != -1) {
+        SCS_reserve(s, s->len + strlen(rep));
+        
+        memmove(s->data + pos + strlen(rep),
+            s->data + pos + strlen(target),
+            strlen(s->data + pos + strlen(target)) + 1
+            );
+            
+        memmove(s->data + pos, rep, strlen(rep));
+        s->len = s->len + strlen(rep) - strlen(target);
+        return 0;
+    }
+    return -1;
+}
+
+int SCS_replace_all(SCS *s, const char *target, const char *rep, size_t max) {
+    size_t i = 1;
+    while (SCS_replace(s, target, rep) == 0 && i < max) {
+        i++;
+    }
+    if (i > 1) {
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
 
 //User Basic
-Scstring *Scstring_new(void) {
-        Scstring *str = malloc(sizeof(Scstring));
+SCS *SCS_new(void) {
+        SCS *str = malloc(sizeof(SCS));
         SCS_HANDLE_MALLOC_ERR(str);
         str->len = 0;
         str->cap = 4;
         str->data = malloc(sizeof(char) * str->cap);
         SCS_HANDLE_MALLOC_ERR(str->data);
-        Scstring_add_null(str);
+        SCS_add_null(str);
         return str;
 }
 
 
-Scstring *Scstring_from(const char *cstr) {
-        Scstring *str = Scstring_new();
-        Scstring_concat_with_cstr(str, cstr);
+SCS *SCS_from(const char *cstr) {
+        SCS *str = SCS_new();
+        SCS_concat_with_str(str, cstr);
         return str;
 }
 
-Scstring *Scstring_clone(Scstring *s) {
-        Scstring *str = Scstring_new();
-        Scstring_concat(str, s);
+SCS *SCS_clone(SCS *s) {
+        SCS *str = SCS_new();
+        SCS_concat(str, s);
         return str;
 }
 
