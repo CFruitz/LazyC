@@ -158,6 +158,33 @@ int SCS_replace_all(SCS *s, const char *target, const char *rep, size_t max) {
     }
 }
 
+int SCS_trim_prefix(SCS *s, const char target) {
+    int count = 0;
+    while (*(s->data + count) == target) count++;
+    memmove(s->data, s->data + count, strlen(s->data + count) + 1);
+    s->len -= count;
+    return (count > 0) ? 0 : -1;
+}
+
+int SCS_trim_suffix(SCS *s, const char target) {
+    if (s->len == 0) return -1;
+    int count = s->len - 1;
+    while (count >= 0 && *(s->data + count) == target) count--;
+    int trimmed = s->len - count - 1;
+    s->len -= trimmed;
+    SCS_add_null(s);
+    return (s->len - count > 0) ? 0 : -1;
+}
+
+int SCS_startswith(SCS *s, const char *target) {
+    if (strlen(target) > s->len) return -1;
+    return (memcmp(s->data, target, strlen(target)) == 0) ? 0 : -1;
+}
+
+int SCS_endswith(SCS *s, const char *target) {
+    if (strlen(target) > s->len) return -1;
+    return (memcmp(s->data + s->len - strlen(target), target, strlen(target)) == 0) ? 0 : -1 ;
+}
 
 //User Basic
 SCS *SCS_new(void) {

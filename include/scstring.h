@@ -38,6 +38,11 @@ void SCS_clear(SCS *s);
 int SCS_find(SCS *s, const char *target);
 int SCS_replace(SCS *s, const char *target, const char *rep);
 int SCS_replace_all(SCS *s, const char *target, const char *rep, size_t max);
+int SCS_trim_prefix(SCS *s, const char target);
+int SCS_trim_suffix(SCS *s, const char target);
+int SCS_startswith(SCS *s, const char *target);
+int SCS_endswith(SCS *s, const char *target);
+
 
 
 SCS *SCS_new(void);
