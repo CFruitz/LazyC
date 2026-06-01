@@ -13,6 +13,13 @@
                         exit(EXIT_FAILURE);                                    \
                 }                                                              \
         } while (0)
+        
+#define SCS_MAP(Name, fn) \
+    do { \
+        for (size_t i = 0; i < (Name)->len; i++) { \
+            (Name)->data[i] = fn((Name)->data[i]); \
+        } \
+    } while (0)
 
 
 typedef struct {
@@ -42,6 +49,8 @@ int SCS_trim_prefix(SCS *s, const char target);
 int SCS_trim_suffix(SCS *s, const char target);
 int SCS_startswith(SCS *s, const char *target);
 int SCS_endswith(SCS *s, const char *target);
+int SCS_cmp(SCS *s1, SCS *s2);
+int SCS_cmp_str(SCS *s1, const char *s2);
 
 
 

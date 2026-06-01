@@ -186,6 +186,16 @@ int SCS_endswith(SCS *s, const char *target) {
     return (memcmp(s->data + s->len - strlen(target), target, strlen(target)) == 0) ? 0 : -1 ;
 }
 
+int SCS_cmp(SCS *s1, SCS *s2) {
+    if (s1->len != s2->len) return -1;
+    return (memcmp(s1->data, s2->data, s1->len) == 0) ? 0 : -1;
+}
+
+int SCS_cmp_str(SCS *s1, const char *s2) {
+    if (s1->len != strlen(s2)) return -1;
+    return (memcmp(s1->data, s2, s1->len) == 0) ? 0 : -1;
+}
+
 //User Basic
 SCS *SCS_new(void) {
         SCS *str = malloc(sizeof(SCS));
